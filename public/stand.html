@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Creativos Stand Kermesse</title>
+  <meta name="color-scheme" content="light" />
+  <link rel="icon" href="/lode-symbol.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="/symbol.js"></script>
+  <style>
+    /* Piezas imprimibles para el stand. Cada .sheet es una página con su tamaño real. */
+    :root { --black: #000; --g700: #585858; --g500: #8a8a8a; --g300: #c7c7c7; --g100: #f2f2f2; --white: #fff; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { background: #e9e9e9; color: var(--black); font-family: Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    .toolbar {
+      position: sticky; top: 0; z-index: 2; background: var(--white); border-bottom: 1px solid var(--g100);
+      display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; padding: 12px 16px;
+    }
+    .toolbar b { font: 400 22px/1 "Instrument Serif", serif; }
+    .toolbar span { font-size: 13px; color: var(--g700); }
+    .toolbar button { font: 500 14px/1 Inter, sans-serif; border: 0; border-radius: 999px; background: var(--black); color: var(--white); padding: 10px 18px; cursor: pointer; }
+    .wrap { display: flex; flex-direction: column; align-items: center; gap: 28px; padding: 28px 16px 60px; }
+    .caption { font: 600 11px/1 Inter, sans-serif; letter-spacing: .16em; text-transform: uppercase; color: var(--g500); margin-bottom: -16px; }
+    .scale { max-width: 100%; overflow: hidden; }
+
+    .sheet { background: var(--white); position: relative; overflow: hidden; box-shadow: 0 2px 24px rgba(0,0,0,.08); }
+    .label { font: 600 var(--lbl, 12px)/1.2 Inter, sans-serif; letter-spacing: .16em; text-transform: uppercase; color: var(--g500); }
+    .serif { font-family: "Instrument Serif", serif; font-weight: 400; letter-spacing: -.02em; }
+    .sym { display: block; width: 100%; height: auto; }
+    .sym .half { fill: var(--black); }
+    .qr svg { display: block; width: 100%; height: auto; }
+    .qr { background: var(--white); border: 1px solid var(--g100); border-radius: 4mm; padding: 4mm; }
+    .url { font-weight: 500; word-break: break-all; }
+    .wordmark { font: 400 1em/1 "Instrument Serif", serif; }
+
+    /* 1. Póster A3 vertical */
+    .poster { width: 297mm; height: 420mm; padding: 20mm 22mm; display: flex; flex-direction: column; page: poster; }
+    .poster .top, .poster .bottom { display: flex; justify-content: space-between; align-items: center; gap: 8mm; }
+    .poster .mark { width: 11mm; }
+    .poster h1 { font-size: 46mm; line-height: .92; margin: 14mm 0 8mm; }
+    .poster h1 em, .tent h2 em, .story h1 em, .sticker h3 em { font-style: italic; }
+    .poster .lead { font-size: 7.4mm; line-height: 1.4; color: var(--g700); max-width: 190mm; margin: 0; }
+    .poster .mid { flex: 1; display: grid; grid-template-columns: 128mm 1fr; gap: 14mm; align-items: center; }
+    .poster .qr { padding: 6mm; border-radius: 6mm; }
+    .poster .url { font-size: 5.2mm; margin-top: 4mm; text-align: center; }
+    .poster .asks { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--g300); }
+    .poster .asks li { font-size: 6.4mm; line-height: 1.3; padding: 5mm 0; border-bottom: 1px solid var(--g300); display: flex; gap: 5mm; }
+    .poster .asks .n { font-size: 4mm; color: var(--g500); padding-top: 1.6mm; font-variant-numeric: tabular-nums; }
+    .poster .facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6mm; border-top: 2px solid var(--black); padding-top: 6mm; margin-bottom: 12mm; }
+    .poster .facts b { display: block; font-size: 7mm; font-weight: 600; margin-top: 2.5mm; }
+    .poster .bottom { --lbl: 4mm; }
+    .poster .bottom .pitch { font-size: 5mm; color: var(--g700); }
+    .poster .bottom .wordmark { font-size: 13mm; }
+
+    /* 2. Hablador de mesa: A4 horizontal, se dobla por la mitad (la parte de arriba va invertida) */
+    .tent { width: 297mm; height: 210mm; display: grid; grid-template-rows: 1fr 1fr; page: tent; }
+    .tent .face { padding: 12mm 16mm; display: grid; grid-template-columns: 1fr 66mm; gap: 12mm; align-items: center; }
+    .tent .face.flip { transform: rotate(180deg); border-top: 1px dashed var(--g300); }
+    .tent h2 { font-size: 21mm; line-height: .95; margin: 4mm 0 4mm; }
+    .tent p { margin: 0; font-size: 4.6mm; line-height: 1.4; color: var(--g700); max-width: 140mm; }
+    .tent .meta { display: flex; align-items: center; gap: 4mm; margin-top: 6mm; font-size: 4mm; }
+    .tent .meta .mark { width: 5mm; }
+    .tent .url { font-size: 3.4mm; text-align: center; margin-top: 2.5mm; }
+    .tent { --lbl: 3.4mm; }
+
+    /* 3. Historia de Instagram 1080 × 1920 */
+    .story { width: 1080px; height: 1920px; padding: 110px 90px; display: flex; flex-direction: column; --lbl: 26px; page: story; }
+    .story .mark { width: 52px; }
+    .story .top { display: flex; justify-content: space-between; align-items: center; }
+    .story h1 { font-size: 200px; line-height: .92; margin: 120px 0 50px; }
+    .story p { font-size: 40px; line-height: 1.4; color: var(--g700); margin: 0; max-width: 820px; }
+    .story .qr { width: 560px; margin: auto auto 0; padding: 32px; border-radius: 32px; }
+    .story .url { font-size: 30px; text-align: center; margin: 24px 0 auto; }
+    .story .bottom { display: flex; justify-content: space-between; align-items: flex-end; font-size: 30px; }
+    .story .bottom .wordmark { font-size: 64px; }
+
+    /* 4. Hoja de stickers A4: 6 tarjetas QR para pegar en mesas o pasar de mano en mano */
+    .stickers { width: 210mm; height: 297mm; padding: 10mm; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 1fr); gap: 6mm; page: stickers; }
+    .sticker { border: 1px dashed var(--g300); border-radius: 5mm; padding: 7mm; display: grid; grid-template-columns: 1fr 38mm; gap: 5mm; align-items: center; --lbl: 2.6mm; }
+    .sticker h3 { font-size: 10mm; line-height: .95; margin: 2.5mm 0; }
+    .sticker p { margin: 0; font-size: 3.2mm; line-height: 1.35; color: var(--g700); }
+    .sticker .qr { padding: 2mm; border-radius: 2mm; }
+    .sticker .foot { margin-top: 3mm; font-size: 3mm; display: flex; align-items: center; gap: 2mm; }
+    .sticker .foot .mark { width: 3mm; }
+
+    @page poster { size: 297mm 420mm; margin: 0; }
+    @page tent { size: 297mm 210mm; margin: 0; }
+    @page story { size: 1080px 1920px; margin: 0; }
+    @page stickers { size: 210mm 297mm; margin: 0; }
+    @media print {
+      body { background: var(--white); }
+      .toolbar, .caption { display: none; }
+      .wrap { display: block; padding: 0; }
+      .scale { transform: none !important; height: auto !important; width: auto !important; overflow: visible; }
+      .sheet { box-shadow: none; break-after: page; transform: none !important; }
+      .sheet:last-child { break-after: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <div><b>Creativos del stand</b> <span>· Kermesse Sergista 2026 · el QR apunta a <span id="target"></span></span></div>
+    <button type="button" onclick="print()">Imprimir / guardar PDF</button>
+  </div>
+
+  <div class="wrap">
+    <div class="caption">01 · Póster A3 vertical (también sirve para pendón)</div>
+    <div class="scale"><section class="sheet poster" id="poster">
+      <div class="top">
+        <span class="label" style="--lbl:4mm">Kermesse Sergista 2026 · Universidad Sergio Arboleda</span>
+        <div class="mark" data-sym></div>
+      </div>
+      <h1 class="serif">Pregúntale <em>a la</em> Kermesse.</h1>
+      <p class="lead">Escanea el código y resuelve cualquier duda sobre la feria desde tu celular, con inteligencia artificial: horario, agenda, emprendimientos y cómo exponer.</p>
+      <div class="mid">
+        <div><div class="qr" data-qr></div><div class="url" data-url></div></div>
+        <div>
+          <div class="label" style="--lbl:4mm;margin-bottom:5mm">Prueba preguntando</div>
+          <ol class="asks">
+            <li><span class="n">01</span>¿Cómo es la agenda del día?</li>
+            <li><span class="n">02</span>¿Qué emprendimientos voy a encontrar?</li>
+            <li><span class="n">03</span>¿Cómo puedo exponer en la próxima edición?</li>
+            <li><span class="n">04</span>¿Cuál es la historia de la Kermesse?</li>
+          </ol>
+        </div>
+      </div>
+      <div class="facts">
+        <div><span class="label" style="--lbl:3.6mm">Cuándo</span><b>Jueves 29 de octubre</b></div>
+        <div><span class="label" style="--lbl:3.6mm">Horario</span><b>7:00 a. m. – 6:00 p. m.</b></div>
+        <div><span class="label" style="--lbl:3.6mm">Entrada</span><b>Libre y gratuita</b></div>
+      </div>
+      <div class="bottom">
+        <span class="pitch">¿Quieres un agente de IA así para tu negocio? <b>lodeai.tech</b></span>
+        <span class="wordmark">Lode.</span>
+      </div>
+    </section></div>
+
+    <div class="caption">02 · Hablador de mesa (A4 horizontal, doblar por la línea)</div>
+    <div class="scale"><section class="sheet tent" id="tent">
+      <div class="face flip" data-face></div>
+      <div class="face" data-face></div>
+    </section></div>
+
+    <div class="caption">03 · Historia de Instagram / WhatsApp (1080 × 1920)</div>
+    <div class="scale"><section class="sheet story" id="story">
+      <div class="top"><span class="label">Kermesse Sergista · 29 oct</span><div class="mark" data-sym></div></div>
+      <h1 class="serif">Pregúntale <em>a la</em> Kermesse.</h1>
+      <p>El asistente de IA de la feria de emprendimiento de la Sergio Arboleda. Horario, agenda, emprendimientos y más, al instante.</p>
+      <div class="qr" data-qr></div>
+      <div class="url" data-url></div>
+      <div class="bottom"><span class="label">Emprende. Conecta. Inspira.</span><span class="wordmark">Lode.</span></div>
+    </section></div>
+
+    <div class="caption">04 · Hoja de stickers A4 (6 tarjetas para recortar)</div>
+    <div class="scale"><section class="sheet stickers" id="stickers"></section></div>
+  </div>
+
+  <template id="faceTpl">
+    <div>
+      <span class="label">Kermesse Sergista 2026 · Asistente de IA</span>
+      <h2 class="serif">¿Dudas de la feria? <em>Pregúntale</em> a la IA.</h2>
+      <p>Escanea y pregunta lo que quieras: horario, agenda del día, qué emprendimientos hay o cómo exponer en la próxima edición. Respuesta inmediata.</p>
+      <div class="meta"><div class="mark" data-sym></div><span>Hecho por <b class="wordmark" style="font-size:6mm">Lode.</b> · agentes de IA para negocios · lodeai.tech</span></div>
+    </div>
+    <div><div class="qr" data-qr></div><div class="url" data-url></div></div>
+  </template>
+  <template id="stickerTpl">
+    <div class="sticker">
+      <div>
+        <span class="label">Kermesse · 29 oct</span>
+        <h3 class="serif">Pregúntale <em>a la</em> Kermesse.</h3>
+        <p>Escanea y resuelve tus dudas sobre la feria con IA.</p>
+        <div class="foot"><div class="mark" data-sym></div><span class="wordmark" style="font-size:4.4mm">Lode.</span></div>
+      </div>
+      <div class="qr" data-qr></div>
+    </div>
+  </template>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+  <script>
+    // Apunta a la página principal del mismo dominio (o a ?url=... si se indica).
+    const target = new URLSearchParams(location.search).get("url") || location.origin + "/";
+    const shortUrl = target.replace(/^https?:\/\//, "").replace(/\/$/, "");
+    const qr = qrcode(0, "H");
+    qr.addData(target);
+    qr.make();
+    const svg = qr.createSvgTag({ cellSize: 10, margin: 0, scalable: true });
+
+    document.querySelectorAll("[data-face]").forEach((f) => f.appendChild(document.getElementById("faceTpl").content.cloneNode(true)));
+    const stickers = document.getElementById("stickers");
+    for (let i = 0; i < 6; i++) stickers.appendChild(document.getElementById("stickerTpl").content.cloneNode(true));
+    document.querySelectorAll("[data-qr]").forEach((el) => { el.innerHTML = svg; });
+    document.querySelectorAll("[data-url]").forEach((el) => { el.textContent = shortUrl; });
+    document.querySelectorAll("[data-sym]").forEach((el) => { el.innerHTML = lodeSymbol(); });
+    document.getElementById("target").textContent = shortUrl;
+
+    // En pantalla, cada pieza se escala para caber en el ancho disponible.
+    function fit() {
+      document.querySelectorAll(".scale").forEach((box) => {
+        const sheet = box.firstElementChild;
+        sheet.style.transform = ""; sheet.style.transformOrigin = "top left";
+        const w = sheet.offsetWidth, h = sheet.offsetHeight;
+        const s = Math.min(1, (document.documentElement.clientWidth - 32) / w, 900 / h);
+        sheet.style.transform = `scale(${s})`;
+        box.style.width = w * s + "px"; box.style.height = h * s + "px";
+      });
+    }
+    addEventListener("resize", fit);
+    document.fonts.ready.then(fit);
+    fit();
+  </script>
+</body>
+</html>
