@@ -2,6 +2,15 @@
 
 QR → `https://kermesse.lodeai.tech` (cámbialo si el dominio final es otro; ver README).
 
+## Pantalla de la laptop (lo principal en el stand)
+
+Abre **https://kermesse.lodeai.tech/laptop.html** en Chrome y presiona **F** (o doble clic) para pantalla completa.
+- El QR queda fijo a la derecha y a la izquierda rotan 4 láminas cada 9 s: titular, preguntas sugeridas, datos de la feria y la oferta de Lode.
+- Flechas ← → o clic para cambiar de lámina a mano. El cursor se oculta solo.
+- `?dur=6` cambia los segundos por lámina; `?slide=1` deja fija una sola lámina (1 a 4).
+- Si no hay internet estable, usa las imágenes de `creativos/laptop/lamina-1.png` … `lamina-4.png` (1920 × 1080) como presentación de fotos.
+- Antes de la feria: desactiva la suspensión y el protector de pantalla de la laptop y súbele el brillo al máximo.
+
 ## Piezas impresas (en `creativos/`)
 
 | Pieza | Archivo | Cómo imprimir |

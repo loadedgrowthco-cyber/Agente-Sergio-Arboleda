@@ -11,6 +11,7 @@ Los visitantes escanean un QR, abren el chat en el celular y le hacen preguntas 
 | `api/chat.js` | Endpoint `/api/chat`: llama a Claude y devuelve la respuesta en streaming. |
 | `public/index.html` | La página de chat (pensada para celular). |
 | `public/qr.html` | Página con el código QR para proyectar en una pantalla del stand. |
+| `public/laptop.html` | **Pantalla para la laptop del stand**: presentación 16:9 en pantalla completa con el QR fijo y 4 mensajes que rotan solos. |
 | `public/stand.html` | Creativos imprimibles del stand: póster A3, hablador de mesa, historia de Instagram y hoja de stickers. |
 | `creativos/` | PNG y PDF ya generados de esas piezas, y `TEXTOS-STAND.md` con los textos para el stand y redes. |
 | `server.js` | Servidor local para pruebas. |
