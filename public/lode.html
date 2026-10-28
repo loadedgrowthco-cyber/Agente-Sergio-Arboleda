@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pantalla Lode</title>
+  <meta name="color-scheme" content="light" />
+  <link rel="icon" href="/lode-symbol.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="/symbol.js"></script>
+  <style>
+    /* Presentación de Lode para la laptop del stand: el QR a lodeai.tech queda fijo y los mensajes rotan a su lado. */
+    :root {
+      --black: #000; --g700: #585858; --g500: #8a8a8a; --g300: #c7c7c7; --g100: #f2f2f2; --white: #fff;
+      --ease-out: cubic-bezier(.16, 1, .3, 1); --ease-in-out: cubic-bezier(.65, 0, .35, 1);
+      /* Unidad que respeta 16:9 en cualquier pantalla */
+      --u: min(1vw, 1.7778vh);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: var(--white); overflow: hidden; }
+    body { color: var(--black); font-family: Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; display: grid; place-items: center; cursor: none; }
+    body.pointer { cursor: default; }
+    .screen { width: calc(var(--u) * 100); height: calc(var(--u) * 56.25); padding: calc(var(--u) * 4) calc(var(--u) * 5); display: flex; flex-direction: column; position: relative; }
+
+    .label { font: 600 calc(var(--u) * .95)/1.2 Inter, sans-serif; letter-spacing: .16em; text-transform: uppercase; color: var(--g500); }
+    .top, .bottom { display: flex; justify-content: space-between; align-items: center; gap: calc(var(--u) * 2); }
+    .mark { width: calc(var(--u) * 2.2); }
+    .sym { display: block; width: 100%; height: auto; overflow: visible; }
+    .sym .half { fill: var(--black); transform-box: fill-box; transform-origin: 50% 50%; }
+    .mark .l { animation: meetL 1.1s var(--ease-out) both, talkL 3.2s var(--ease-in-out) 1.6s infinite; }
+    .mark .r { animation: meetR 1.1s var(--ease-out) both, talkR 3.2s var(--ease-in-out) 1.6s infinite; }
+
+    .stage { flex: 1; display: grid; grid-template-columns: 1fr calc(var(--u) * 32); gap: calc(var(--u) * 6); align-items: center; }
+    .slides { position: relative; height: 100%; }
+    .slide { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; visibility: hidden; }
+    .slide.on { visibility: visible; }
+    .slide.on .in { animation: fadeUp .9s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 90ms + 80ms); }
+    .slide.on .w > span { animation: rise 1.1s var(--ease-out) both; animation-delay: calc(var(--i) * 110ms + 150ms); }
+    .slide.out { visibility: visible; animation: leave .5s var(--ease-in-out) both; }
+    .w { display: inline-block; overflow: hidden; vertical-align: top; padding: 0 .06em .12em 0; margin: 0 -.06em -.12em 0; }
+    .w > span { display: inline-block; }
+
+    h1 { font: 400 calc(var(--u) * 8.6)/.94 "Instrument Serif", serif; letter-spacing: -.02em; margin: calc(var(--u) * 1.6) 0 calc(var(--u) * 2); }
+    h1 em, h2 em { font-style: italic; }
+    h2 { font: 400 calc(var(--u) * 5.4)/.98 "Instrument Serif", serif; letter-spacing: -.02em; margin: calc(var(--u) * 1.4) 0 calc(var(--u) * 2.4); }
+    p { margin: 0; color: var(--g700); font-size: calc(var(--u) * 1.75); line-height: 1.45; max-width: 34ch; }
+
+    .asks { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--g300); max-width: calc(var(--u) * 48); }
+    .asks li { display: flex; gap: calc(var(--u) * 1.6); align-items: baseline; padding: calc(var(--u) * 1.3) 0; border-bottom: 1px solid var(--g300); font-size: calc(var(--u) * 2); }
+    .asks .n { font-size: calc(var(--u) * 1); color: var(--g500); font-variant-numeric: tabular-nums; }
+
+    .facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(var(--u) * 2.4) calc(var(--u) * 3); border-top: 2px solid var(--black); padding-top: calc(var(--u) * 2.2); max-width: calc(var(--u) * 52); }
+    .facts b { display: block; font-size: calc(var(--u) * 2.1); font-weight: 600; margin-top: calc(var(--u) * .7); line-height: 1.2; }
+
+    .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: calc(var(--u) * 1.4); max-width: calc(var(--u) * 54); }
+    .cards div { border: 1px solid var(--g300); border-radius: calc(var(--u) * 1); padding: calc(var(--u) * 1.4); font-size: calc(var(--u) * 1.3); line-height: 1.35; color: var(--g700); }
+    .cards b { display: block; color: var(--black); font-size: calc(var(--u) * 1.5); margin-bottom: calc(var(--u) * .5); }
+
+    .card { text-align: center; }
+    #qr {
+      position: relative; overflow: hidden; background: var(--white); padding: calc(var(--u) * 1.8);
+      border: 1px solid var(--g100); border-radius: calc(var(--u) * 1.4); animation: cardIn 1.1s var(--ease-out) .4s both;
+    }
+    #qr svg { display: block; width: 100%; height: auto; animation: reveal 1.4s var(--ease-in-out) .7s both; }
+    #qr::after {
+      content: ""; position: absolute; left: 0; right: 0; top: 0; height: 18%;
+      background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.5) 88%, #8a8a8a 96%, rgba(255,255,255,0) 100%);
+      transform: translateY(-110%); animation: scan 3.6s var(--ease-in-out) 2.4s infinite; pointer-events: none;
+    }
+    .scan { margin-top: calc(var(--u) * 1.6); font: 600 calc(var(--u) * 1.15)/1.2 Inter, sans-serif; letter-spacing: .16em; text-transform: uppercase; }
+    .url { margin-top: calc(var(--u) * .6); font: 500 calc(var(--u) * 1.3)/1.2 Inter, sans-serif; color: var(--g700); }
+
+    .bottom { --gap: calc(var(--u) * .6); }
+    .dots { display: flex; gap: var(--gap); }
+    .dots i { display: block; width: calc(var(--u) * 3.2); height: 2px; background: var(--g100); position: relative; overflow: hidden; }
+    .dots i.done::after, .dots i.on::after { content: ""; position: absolute; inset: 0; background: var(--black); transform-origin: left; }
+    .dots i.on::after { animation: fill var(--dur, 9s) linear both; }
+    .wordmark { font: 400 calc(var(--u) * 2.4)/1 "Instrument Serif", serif; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(calc(var(--u) * 1.2)); filter: blur(8px); } to { opacity: 1; transform: none; filter: none; } }
+    @keyframes rise { from { transform: translateY(105%); } to { transform: none; } }
+    @keyframes leave { to { opacity: 0; transform: translateY(calc(var(--u) * -1)); filter: blur(6px); } }
+    @keyframes cardIn { from { opacity: 0; transform: translateY(24px) scale(.96); } to { opacity: 1; transform: none; } }
+    @keyframes reveal { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+    @keyframes scan { 0% { transform: translateY(-110%); } 55%, 100% { transform: translateY(560%); } }
+    @keyframes fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    @keyframes meetL { from { transform: translateX(-70%) rotate(-12deg); opacity: 0; } to { transform: none; opacity: 1; } }
+    @keyframes meetR { from { transform: translateX(70%) rotate(12deg); opacity: 0; } to { transform: none; opacity: 1; } }
+    @keyframes talkL { 0%, 100% { transform: none; } 12% { transform: translate(-8%, -7%) rotate(-7deg); } 24%, 50% { transform: none; } }
+    @keyframes talkR { 0%, 50%, 100% { transform: none; } 62% { transform: translate(8%, -7%) rotate(7deg); } 74% { transform: none; } }
+    /* Lámina fija (?slide=N): sin línea de escaneo ni barra de progreso, para exportar imágenes */
+    .static #qr::after { display: none; }
+    .static .dots i.on::after { animation: none; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; }
+      #qr::after { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="screen">
+    <div class="top">
+      <span class="label">Lode · Agentes de inteligencia artificial</span>
+      <div class="mark" id="mark" role="img" aria-label="Lode"></div>
+    </div>
+
+    <div class="stage">
+      <div class="slides">
+        <section class="slide">
+          <span class="label in" style="--i:0">Agencia de inteligencia artificial · Barranquilla</span>
+          <h1 aria-label="Hola, somos Lode."><span class="w"><span style="--i:0">Hola,</span></span> <span class="w"><span style="--i:1"><em>somos</em></span></span><br><span class="w"><span style="--i:2">Lode.</span></span></h1>
+          <p class="in" style="--i:5">Creamos agentes de inteligencia artificial que atienden a los clientes de tu negocio, como el asistente de esta feria.</p>
+        </section>
+
+        <section class="slide">
+          <span class="label in" style="--i:0">Qué hace un agente de IA</span>
+          <h2 aria-label="Tu negocio, respondiendo solo."><span class="w"><span style="--i:0">Tu</span></span> <span class="w"><span style="--i:1">negocio,</span></span><br><span class="w"><span style="--i:2"><em>respondiendo solo.</em></span></span></h2>
+          <ol class="asks">
+            <li class="in" style="--i:3"><span class="n">01</span>Responde al instante, a cualquier hora.</li>
+            <li class="in" style="--i:4"><span class="n">02</span>Conoce tus productos, precios y horarios.</li>
+            <li class="in" style="--i:5"><span class="n">03</span>Atiende a muchas personas a la vez.</li>
+            <li class="in" style="--i:6"><span class="n">04</span>Se abre con un QR, sin instalar nada.</li>
+          </ol>
+        </section>
+
+        <section class="slide">
+          <span class="label in" style="--i:0">Hecho por Lode</span>
+          <h2 aria-label="Ya lo usan en Barranquilla."><span class="w"><span style="--i:0">Ya</span></span> <span class="w"><span style="--i:1">lo</span></span> <span class="w"><span style="--i:2">usan</span></span><br><span class="w"><span style="--i:3"><em>en Barranquilla.</em></span></span></h2>
+          <div class="facts">
+            <div class="in" style="--i:4"><span class="label">Kermesse Sergista</span><b>Asistente de la feria de la U. Sergio Arboleda</b></div>
+            <div class="in" style="--i:5"><span class="label">Feria Shuk</span><b>Asistente de la feria del Colegio Hebreo Unión</b></div>
+          </div>
+          <p class="in" style="--i:6;margin-top:calc(var(--u) * 2.4)">El asistente de esta Kermesse lo hicimos nosotros. Pruébalo en <b style="color:var(--black)">kermesse.lodeai.tech</b></p>
+        </section>
+
+        <section class="slide">
+          <span class="label in" style="--i:0">Cómo trabajamos</span>
+          <h2 aria-label="De tu idea a tu agente."><span class="w"><span style="--i:0">De</span></span> <span class="w"><span style="--i:1">tu</span></span> <span class="w"><span style="--i:2">idea</span></span><br><span class="w"><span style="--i:3"><em>a tu agente.</em></span></span></h2>
+          <div class="cards">
+            <div class="in" style="--i:4"><b>01 · Nos cuentas</b>Qué vendes y qué te preguntan tus clientes.</div>
+            <div class="in" style="--i:5"><b>02 · Lo creamos</b>Entrenamos el agente con la información de tu marca.</div>
+            <div class="in" style="--i:6"><b>03 · Lo compartes</b>Con un QR o un enlace, listo para tus clientes.</div>
+          </div>
+        </section>
+
+        <section class="slide">
+          <span class="label in" style="--i:0">¿Tienes un negocio?</span>
+          <h1 aria-label="Hablemos."><span class="w"><span style="--i:0"><em>Hablemos.</em></span></span></h1>
+          <p class="in" style="--i:3">Escanea el código para conocer Lode, o pregúntanos aquí mismo en el stand cómo quedaría un agente para tu marca.</p>
+        </section>
+      </div>
+
+      <div class="card">
+        <div id="qr"></div>
+        <div class="scan">Escanea y conoce Lode</div>
+        <div class="url" id="url"></div>
+      </div>
+    </div>
+
+    <div class="bottom">
+      <div class="dots" id="dots"></div>
+      <span class="wordmark">Lode.</span>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+  <script>
+    // ?url=... cambia el destino del QR (por defecto lodeai.tech); ?slide=N deja fija una lámina (1-5); ?dur=segundos cambia el ritmo.
+    const params = new URLSearchParams(location.search);
+    const target = params.get("url") || "https://lodeai.tech/";
+    document.getElementById("mark").innerHTML = lodeSymbol();
+    document.getElementById("url").textContent = target.replace(/^https?:\/\//, "").replace(/\/$/, "");
+    const qr = qrcode(0, "H");
+    qr.addData(target);
+    qr.make();
+    document.getElementById("qr").innerHTML = qr.createSvgTag({ cellSize: 10, margin: 0, scalable: true });
+
+    const slides = [...document.querySelectorAll(".slide")];
+    const dots = document.getElementById("dots");
+    dots.innerHTML = slides.map(() => "<i></i>").join("");
+    const dur = Math.max(3, Number(params.get("dur")) || 9) * 1000;
+    dots.style.setProperty("--dur", dur / 1000 + "s");
+    const fixed = params.has("slide");
+    document.body.classList.toggle("static", fixed);
+    let current = -1, timer = null;
+
+    function show(i) {
+      i = (i + slides.length) % slides.length;
+      if (current >= 0 && current !== i) {
+        const prev = slides[current];
+        prev.classList.remove("on"); prev.classList.add("out");
+        setTimeout(() => prev.classList.remove("out"), 500);
+      }
+      current = i;
+      slides[i].classList.add("on");
+      [...dots.children].forEach((d, k) => { d.className = k < i ? "done" : k === i ? "on" : ""; });
+      clearTimeout(timer);
+      if (!fixed) timer = setTimeout(() => show(current + 1), dur);
+    }
+    show(fixed ? Number(params.get("slide")) - 1 : 0);
+
+    // Flechas o clic para avanzar; F o doble clic para pantalla completa. El cursor se oculta solo.
+    addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === " ") show(current + 1);
+      if (e.key === "ArrowLeft") show(current - 1);
+      if (e.key === "f" || e.key === "F") toggleFull();
+    });
+    addEventListener("click", () => show(current + 1));
+    addEventListener("dblclick", toggleFull);
+    function toggleFull() {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen?.().catch(() => {});
+    }
+    let idle;
+    addEventListener("mousemove", () => {
+      document.body.classList.add("pointer");
+      clearTimeout(idle);
+      idle = setTimeout(() => document.body.classList.remove("pointer"), 2000);
+    });
+  </script>
+</body>
+</html>

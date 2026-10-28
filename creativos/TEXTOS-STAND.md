@@ -11,6 +11,13 @@ Abre **https://kermesse.lodeai.tech/laptop.html** en Chrome y presiona **F** (o 
 - Si no hay internet estable, usa las imágenes de `creativos/laptop/lamina-1.png` … `lamina-4.png` (1920 × 1080) como presentación de fotos.
 - Antes de la feria: desactiva la suspensión y el protector de pantalla de la laptop y súbele el brillo al máximo.
 
+## Pantalla para presentar Lode
+
+**https://kermesse.lodeai.tech/lode.html**: funciona igual que `laptop.html`, pero habla de Lode. El QR lleva a **lodeai.tech** y rotan 5 láminas: "Hola, somos Lode", qué hace un agente de IA, los casos (Kermesse y Shuk), cómo trabajamos y "Hablemos".
+- Para que el QR lleve a otro lugar (por ejemplo, tu WhatsApp): `lode.html?url=https://wa.me/57XXXXXXXXXX`.
+- Imágenes de respaldo: `creativos/lode/lode-1.png` … `lode-5.png` (1920 × 1080).
+- Puedes alternar las dos pantallas durante el día, o tener una en la laptop y otra en un celular o tablet.
+
 ## Piezas impresas (en `creativos/`)
 
 | Pieza | Archivo | Cómo imprimir |
