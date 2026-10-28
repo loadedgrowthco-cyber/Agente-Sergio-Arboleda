@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Asistente Kermesse · Universidad Sergio Arboleda</title>
+  <meta name="description" content="Asistente de IA de la Kermesse Sergista 2026, feria de emprendimiento de la Universidad Sergio Arboleda en Barranquilla. Desarrollado por Lode." />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="color-scheme" content="light" />
+  <link rel="icon" href="/lode-symbol.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="/symbol.js"></script>
+  <style>
+    /* Sistema de color Lode: estrictamente monocromático */
+    :root {
+      --black: #000000;
+      --g900: #2b2b2b;
+      --g700: #585858;
+      --g500: #8a8a8a;
+      --g300: #c7c7c7;
+      --g100: #f2f2f2;
+      --white: #ffffff;
+      --serif: "Instrument Serif", "Times New Roman", serif;
+      --sans: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+      --max: 680px;
+      /* Movimiento: salidas suaves y precisas, sin rebotes exagerados */
+      --ease-out: cubic-bezier(.16, 1, .3, 1);
+      --ease-in-out: cubic-bezier(.65, 0, .35, 1);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      background: var(--white); color: var(--black);
+      font: 400 16px/1.55 var(--sans);
+      -webkit-font-smoothing: antialiased;
+      display: flex; flex-direction: column; height: 100dvh;
+    }
+    button { font: inherit; color: inherit; }
+
+    .label {
+      font: 600 11px/1 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--g500);
+    }
+
+    /* Símbolo en dos mitades */
+    .sym { display: block; width: 100%; height: auto; overflow: visible; }
+    .sym .half { fill: var(--black); transform-box: fill-box; transform-origin: 50% 50%; }
+
+    /* Header */
+    header {
+      flex: none; background: var(--white);
+      border-bottom: 1px solid transparent; transition: border-color .3s;
+      padding-top: env(safe-area-inset-top);
+    }
+    header.scrolled { border-bottom-color: var(--g100); }
+    .head {
+      max-width: var(--max); margin: 0 auto; height: 60px; padding: 0 20px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+    .brand .mark { width: 24px; flex: none; }
+    .brand .mark .l { animation: meetL .9s var(--ease-out) both; }
+    .brand .mark .r { animation: meetR .9s var(--ease-out) both; }
+    .brand .titles { min-width: 0; animation: fadeUp .7s var(--ease-out) .15s both; }
+    .brand .title { font: 600 15px/1.2 var(--sans); letter-spacing: -.01em; }
+    .brand .sub { font: 400 12.5px/1.2 var(--sans); color: var(--g500); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .reset {
+      flex: none; display: none; align-items: center; gap: 6px;
+      border: 1px solid var(--g300); background: var(--white); border-radius: 999px;
+      padding: 7px 12px; font: 500 13px/1 var(--sans); cursor: pointer;
+      transition: border-color .2s, transform .2s var(--ease-out);
+    }
+    .reset.show { display: inline-flex; animation: popIn .5s var(--ease-out) both; }
+    .reset:hover { border-color: var(--black); }
+    .reset:active { transform: scale(.95); }
+    .reset svg { transition: transform .4s var(--ease-out); }
+    .reset:hover svg { transform: rotate(90deg); }
+
+    /* Conversación */
+    main { flex: 1; overflow-y: auto; overscroll-behavior: contain; scroll-behavior: smooth; }
+    .feed { max-width: var(--max); margin: 0 auto; padding: 8px 20px 24px; display: flex; flex-direction: column; gap: 28px; }
+
+    /* Entrada escalonada de la pantalla de inicio */
+    .intro { padding-top: 6vh; }
+    .intro .in { animation: fadeUp .8s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 70ms + 120ms); }
+    .intro.leave { animation: leave .28s var(--ease-in-out) both; }
+    .intro h1 {
+      font: 400 clamp(44px, 12vw, 64px)/0.98 var(--serif); letter-spacing: -.02em; margin: 14px 0 16px;
+    }
+    .intro h1 em { font-style: italic; }
+    /* Cada palabra del titular sube desde una máscara */
+    .w { display: inline-block; overflow: hidden; vertical-align: top; padding: 0 .06em .12em 0; margin: 0 -.06em -.12em 0; }
+    .w > span { display: inline-block; animation: rise 1s var(--ease-out) both; animation-delay: calc(var(--i) * 90ms + 200ms); }
+    .intro p { color: var(--g700); margin: 0; max-width: 460px; font-size: 16px; }
+
+    .suggest { margin-top: 36px; }
+    .suggest ol { list-style: none; margin: 12px 0 0; padding: 0; position: relative; }
+    .suggest ol::before, .suggest li::after {
+      content: ""; position: absolute; left: 0; right: 0; height: 1px; background: var(--g100);
+      transform-origin: left; animation: draw 1s var(--ease-out) both;
+    }
+    .suggest ol::before { top: 0; animation-delay: 520ms; }
+    .suggest li { position: relative; animation: fadeUp .7s var(--ease-out) both; animation-delay: calc(var(--i) * 60ms + 560ms); }
+    .suggest li::after { bottom: 0; animation-delay: calc(var(--i) * 60ms + 600ms); }
+    .suggest button {
+      width: 100%; display: flex; align-items: center; gap: 16px; text-align: left;
+      background: none; border: 0; padding: 16px 2px; cursor: pointer; font: 400 15.5px/1.35 var(--sans);
+      position: relative; overflow: hidden; isolation: isolate;
+    }
+    /* Relleno que barre de izquierda a derecha al tocar */
+    .suggest button::before {
+      content: ""; position: absolute; inset: 0; background: var(--g100); z-index: -1;
+      transform: scaleX(0); transform-origin: left; transition: transform .45s var(--ease-out);
+    }
+    .suggest button:active::before { transform: scaleX(1); transition-duration: .25s; }
+    .suggest .n { font: 500 12px/1 var(--sans); color: var(--g500); font-variant-numeric: tabular-nums; width: 18px; flex: none; transition: color .3s; }
+    .suggest .q { flex: 1; transition: transform .45s var(--ease-out); }
+    .suggest .arrow { color: var(--g300); transition: transform .45s var(--ease-out), color .3s; flex: none; }
+    .suggest button:hover .q, .suggest button:focus-visible .q { transform: translateX(4px); }
+    .suggest button:hover .n, .suggest button:focus-visible .n { color: var(--black); }
+    .suggest button:hover .arrow, .suggest button:focus-visible .arrow { color: var(--black); transform: translateX(4px); }
+
+    /* Mensajes */
+    .row-user { display: flex; justify-content: flex-end; }
+    .bubble-user {
+      max-width: 82%; background: var(--black); color: var(--white);
+      padding: 11px 16px; border-radius: 20px 20px 6px 20px;
+      overflow-wrap: anywhere; white-space: pre-wrap;
+      transform-origin: 100% 100%; animation: bubbleIn .55s var(--ease-out) both;
+    }
+    .row-bot { display: flex; gap: 14px; align-items: flex-start; animation: fadeUp .6s var(--ease-out) .12s both; }
+    .row-bot .avatar { flex: none; width: 20px; padding-top: 1px; }
+    .bot { flex: 1; min-width: 0; overflow-wrap: anywhere; color: var(--black); }
+    .bot p { margin: 0 0 .7em; } .bot p:last-child { margin-bottom: 0; }
+    .bot ul, .bot ol { margin: .2em 0 .8em; padding-left: 1.15em; }
+    .bot li { margin: .25em 0; padding-left: .2em; }
+    .bot li::marker { color: var(--g500); }
+    .bot strong { font-weight: 600; }
+    .bot .enter { animation: blockIn .5s var(--ease-out) both; }
+    .bot.error { color: var(--g700); animation: nudge .45s var(--ease-out); }
+
+    /* Pensando: las dos mitades del símbolo conversan entre sí */
+    .avatar.thinking .l { animation: talkL 1.3s var(--ease-in-out) infinite; }
+    .avatar.thinking .r { animation: talkR 1.3s var(--ease-in-out) infinite; }
+    .avatar .half { transition: transform .5s var(--ease-out); }
+    .thinking-label {
+      display: inline-block; padding: 1px 0; font-size: 15px; color: transparent;
+      background: linear-gradient(90deg, var(--g300) 0%, var(--g300) 35%, var(--black) 50%, var(--g300) 65%, var(--g300) 100%);
+      background-size: 300% 100%; -webkit-background-clip: text; background-clip: text;
+      animation: shimmer 1.8s linear infinite;
+    }
+
+    /* El punto final de Lode. late mientras se escribe la respuesta */
+    .dot {
+      display: inline-block; width: 7px; height: 7px; margin-left: 3px; border-radius: 50%;
+      background: var(--black); vertical-align: baseline; animation: beat 1s var(--ease-in-out) infinite;
+    }
+
+    /* Composer */
+    form { flex: none; background: var(--white); padding: 8px 20px calc(12px + env(safe-area-inset-bottom)); animation: fadeUp .8s var(--ease-out) .35s both; }
+    .bar {
+      max-width: var(--max); margin: 0 auto; display: flex; align-items: flex-end; gap: 8px;
+      border: 1px solid var(--g300); border-radius: 26px; padding: 6px 6px 6px 18px; background: var(--white);
+      transition: border-color .3s, box-shadow .4s var(--ease-out);
+    }
+    .bar:focus-within { border-color: var(--black); box-shadow: 0 0 0 4px var(--g100); }
+    textarea {
+      flex: 1; resize: none; border: 0; outline: none; background: transparent; color: var(--black);
+      font: 400 16px/1.4 var(--sans); padding: 9px 0; max-height: 132px; min-height: 40px;
+    }
+    textarea::placeholder { color: var(--g500); transition: opacity .3s; }
+    textarea:focus::placeholder { opacity: .5; }
+    .send {
+      flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0; cursor: pointer; overflow: hidden;
+      background: var(--black); color: var(--white); display: grid; place-items: center;
+      transition: background .3s, transform .3s var(--ease-out);
+    }
+    .send:not(:disabled):active { transform: scale(.9); }
+    .send:disabled { background: var(--g300); cursor: default; }
+    .send.ready { animation: pop .45s var(--ease-out); }
+    .send.launch svg { animation: launch .6s var(--ease-out); }
+    .legal {
+      max-width: var(--max); margin: 10px auto 0; display: flex; justify-content: space-between; gap: 12px;
+      font: 400 11.5px/1.3 var(--sans); color: var(--g500);
+    }
+    .legal a { color: var(--g700); text-decoration: none; white-space: nowrap; flex: none; align-self: flex-end; }
+    .legal a b { font: 400 15px/1 var(--serif); color: var(--black); letter-spacing: 0; }
+
+    /* Keyframes */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+    @keyframes rise { from { transform: translateY(105%); } to { transform: none; } }
+    @keyframes draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    @keyframes leave { to { opacity: 0; transform: translateY(-12px); filter: blur(6px); } }
+    @keyframes meetL { from { transform: translateX(-70%) rotate(-12deg); opacity: 0; } to { transform: none; opacity: 1; } }
+    @keyframes meetR { from { transform: translateX(70%) rotate(12deg); opacity: 0; } to { transform: none; opacity: 1; } }
+    @keyframes talkL { 0%, 100% { transform: none; } 25% { transform: translate(-8%, -7%) rotate(-7deg); } 50% { transform: none; } }
+    @keyframes talkR { 0%, 50%, 100% { transform: none; } 75% { transform: translate(8%, -7%) rotate(7deg); } }
+    @keyframes shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+    @keyframes bubbleIn { from { opacity: 0; transform: translateY(10px) scale(.92); } to { opacity: 1; transform: none; } }
+    @keyframes blockIn { from { opacity: 0; transform: translateY(4px); filter: blur(3px); } to { opacity: 1; transform: none; filter: none; } }
+    @keyframes beat { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(.55); opacity: .35; } }
+    @keyframes pop { 0% { transform: scale(.82); } 60% { transform: scale(1.06); } 100% { transform: scale(1); } }
+    @keyframes popIn { from { opacity: 0; transform: translateY(-4px) scale(.9); } to { opacity: 1; transform: none; } }
+    @keyframes launch { 0% { transform: none; } 45% { transform: translateY(-140%); opacity: 0; } 46% { transform: translateY(140%); opacity: 0; } 100% { transform: none; opacity: 1; } }
+    @keyframes nudge { 0%, 100% { transform: none; } 30% { transform: translateX(-4px); } 60% { transform: translateX(3px); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+      main { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header id="header">
+    <div class="head">
+      <div class="brand">
+        <div class="mark" id="mark" role="img" aria-label="Lode"></div>
+        <div class="titles">
+          <div class="title">Asistente Kermesse</div>
+          <div class="sub">Universidad Sergio Arboleda · Feria de Emprendimiento</div>
+        </div>
+      </div>
+      <button class="reset" id="reset" type="button" aria-label="Nueva conversación">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        Nueva
+      </button>
+    </div>
+  </header>
+
+  <main id="scroll">
+    <div class="feed" id="feed">
+      <section class="intro" id="intro">
+        <div class="label in" style="--i:0">Jueves 29 de octubre · 7 a. m. – 6 p. m.</div>
+        <h1 aria-label="Pregúntale a la Kermesse."><span class="w"><span style="--i:0">Pregúntale</span></span> <span class="w"><span style="--i:1"><em>a la</em></span></span> <span class="w"><span style="--i:2">Kermesse.</span></span></h1>
+        <p class="in" style="--i:3">Todo sobre la Kermesse Sergista de la Universidad Sergio Arboleda: horario, agenda, emprendimientos, cómo llegar y cómo exponer. Respuesta inmediata.</p>
+        <nav class="suggest" aria-label="Preguntas sugeridas">
+          <div class="label in" style="--i:5">Preguntas frecuentes</div>
+          <ol id="chips"></ol>
+        </nav>
+      </section>
+    </div>
+  </main>
+
+  <form id="form" autocomplete="off">
+    <div class="bar">
+      <textarea id="input" rows="1" maxlength="2000" placeholder="Escribe tu pregunta" aria-label="Escribe tu pregunta"></textarea>
+      <button class="send" id="send" type="submit" aria-label="Enviar" disabled>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+      </button>
+    </div>
+    <div class="legal">
+      <span>Asistente de IA. Verifica datos clave en el punto de información.</span>
+      <a href="https://lodeai.tech" target="_blank" rel="noopener">por <b>Lode.</b></a>
+    </div>
+  </form>
+
+  <script>
+    const SUGGESTIONS = [
+      "¿Qué es la Kermesse Sergista?",
+      "¿Dónde y a qué hora es la feria?",
+      "¿Cómo es la agenda del día?",
+      "¿Qué emprendimientos voy a encontrar?",
+      "¿La entrada tiene costo?",
+      "¿Cómo puedo exponer mi emprendimiento?",
+    ];
+    const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const feed = document.getElementById("feed");
+    const scroller = document.getElementById("scroll");
+    const header = document.getElementById("header");
+    const form = document.getElementById("form");
+    const input = document.getElementById("input");
+    const send = document.getElementById("send");
+    const reset = document.getElementById("reset");
+    document.getElementById("mark").innerHTML = lodeSymbol();
+    const introTpl = document.getElementById("intro").cloneNode(true);
+    let history = [];
+    let busy = false;
+    let controller = null;
+    let session = 0;
+
+    const sleep = (ms) => new Promise((r) => setTimeout(r, REDUCED ? 0 : ms));
+    const esc = (s) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    function inline(s) {
+      // Mientras se escribe, oculta un ** que todavía no se ha cerrado.
+      if ((s.match(/\*\*/g) || []).length % 2) s = s.replace(/\*\*(?!.*\*\*)/, "");
+      return esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>");
+    }
+
+    // Markdown mínimo: párrafos, negritas, cursivas y listas.
+    function render(md) {
+      const out = [];
+      let list = null;
+      for (const raw of md.split("\n")) {
+        const line = raw.trim();
+        const ul = line.match(/^[-*•]\s+(.*)/), ol = line.match(/^\d+[.)]\s+(.*)/);
+        const kind = ul ? "ul" : ol ? "ol" : null;
+        if (kind) {
+          if (!list || list.kind !== kind) { if (list) out.push(`</${list.kind}>`); list = { kind }; out.push(`<${kind}>`); }
+          out.push(`<li>${inline((ul || ol)[1])}</li>`);
+          continue;
+        }
+        if (list) { out.push(`</${list.kind}>`); list = null; }
+        if (line) out.push(`<p>${inline(line.replace(/^#+\s*/, ""))}</p>`);
+      }
+      if (list) out.push(`</${list.kind}>`);
+      return out.join("");
+    }
+
+    // Actualiza solo los bloques que cambian, así cada párrafo nuevo entra con su propia animación.
+    function sync(cur, next) {
+      const a = cur.children, b = next.children;
+      while (a.length > b.length) a[a.length - 1].remove();
+      for (let i = 0; i < b.length; i++) {
+        const n = b[i], c = a[i];
+        if (!c) { const node = n.cloneNode(true); node.classList.add("enter"); cur.appendChild(node); }
+        else if (c.tagName !== n.tagName) c.replaceWith(n.cloneNode(true));
+        else if (c.tagName === "UL" || c.tagName === "OL") sync(c, n);
+        else if (c.innerHTML !== n.innerHTML) c.innerHTML = n.innerHTML;
+      }
+    }
+    function paint(el, md, writing) {
+      const tpl = document.createElement("div");
+      tpl.innerHTML = render(md);
+      sync(el, tpl);
+      if (writing) {
+        let last = el.lastElementChild;
+        while (last && (last.tagName === "UL" || last.tagName === "OL")) last = last.lastElementChild;
+        if (last) last.insertAdjacentHTML("beforeend", '<span class="dot" aria-hidden="true"></span>');
+      }
+    }
+
+    function renderSuggestions() {
+      document.getElementById("chips").innerHTML = SUGGESTIONS.map((q, i) =>
+        `<li style="--i:${i}"><button type="button" data-q="${esc(q)}"><span class="n">${String(i + 1).padStart(2, "0")}</span><span class="q">${esc(q)}</span>` +
+        `<svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></li>`
+      ).join("");
+    }
+
+    const toBottom = () => { scroller.scrollTop = scroller.scrollHeight; };
+
+    function addUser(text) {
+      const row = document.createElement("div");
+      row.className = "row-user";
+      row.innerHTML = `<div class="bubble-user">${esc(text)}</div>`;
+      feed.appendChild(row);
+    }
+
+    function addBot() {
+      const row = document.createElement("div");
+      row.className = "row-bot";
+      row.innerHTML = `<div class="avatar thinking">${lodeSymbol()}</div><div class="bot"><span class="thinking-label">Pensando</span></div>`;
+      feed.appendChild(row);
+      return { avatar: row.querySelector(".avatar"), el: row.querySelector(".bot") };
+    }
+
+    async function ask(text) {
+      text = text.trim();
+      if (!text || busy) return;
+      busy = true; send.disabled = true;
+      const mine = ++session;
+      send.classList.remove("launch"); void send.offsetWidth; send.classList.add("launch");
+
+      const intro = document.getElementById("intro");
+      if (intro) { intro.classList.add("leave"); await sleep(260); intro.remove(); }
+      reset.classList.add("show");
+
+      addUser(text);
+      history.push({ role: "user", content: text });
+      const { avatar, el } = addBot();
+      toBottom();
+
+      // Lo recibido se va mostrando a ritmo constante (efecto de escritura) en lugar de a saltos.
+      let target = "", shown = 0, done = false, started = false;
+      const finished = new Promise((resolve) => {
+        const tick = () => {
+          if (mine !== session) return resolve();
+          if (shown < target.length) {
+            if (!started) { started = true; avatar.classList.remove("thinking"); el.innerHTML = ""; }
+            const lag = target.length - shown;
+            shown = REDUCED ? target.length : Math.min(target.length, shown + Math.max(1, Math.ceil(lag / 10)));
+            const stick = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 80;
+            paint(el, target.slice(0, shown), true);
+            if (stick) toBottom();
+          } else if (done) {
+            if (started) paint(el, target, false);
+            return resolve();
+          }
+          requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+
+      controller = new AbortController();
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: history }),
+          signal: controller.signal,
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || "No fue posible responder en este momento. Intenta de nuevo.");
+        }
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        while (true) {
+          const { done: end, value } = await reader.read();
+          if (end) break;
+          target += decoder.decode(value, { stream: true });
+        }
+        target = target.trim();
+        if (!target) throw new Error("No fue posible responder en este momento. Intenta de nuevo.");
+        done = true;
+        await finished;
+        if (mine === session) history.push({ role: "assistant", content: target });
+      } catch (err) {
+        done = true; target = ""; shown = 0;
+        await finished;
+        if (err.name === "AbortError" || mine !== session) return;
+        avatar.classList.remove("thinking");
+        el.classList.add("error");
+        el.innerHTML = `<p>${esc(err.message || "Sin conexión. Revisa tu internet e intenta de nuevo.")}</p>`;
+        history.pop(); // permite reenviar la pregunta
+      } finally {
+        if (mine === session) {
+          busy = false;
+          updateSend();
+        }
+      }
+    }
+
+    function newChat() {
+      session++;
+      controller?.abort();
+      history = [];
+      busy = false;
+      feed.innerHTML = "";
+      feed.appendChild(introTpl.cloneNode(true));
+      renderSuggestions();
+      reset.classList.remove("show");
+      scroller.scrollTop = 0;
+      updateSend();
+      input.focus();
+    }
+
+    function updateSend() {
+      const was = send.disabled;
+      send.disabled = busy || !input.value.trim();
+      if (was && !send.disabled) { send.classList.remove("ready"); void send.offsetWidth; send.classList.add("ready"); }
+    }
+
+    feed.addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-q]");
+      if (btn) ask(btn.dataset.q);
+    });
+    reset.addEventListener("click", newChat);
+    scroller.addEventListener("scroll", () => header.classList.toggle("scrolled", scroller.scrollTop > 4));
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const text = input.value;
+      input.value = ""; input.style.height = "";
+      ask(text);
+    });
+    input.addEventListener("input", () => {
+      updateSend();
+      input.style.height = "auto";
+      input.style.height = Math.min(input.scrollHeight, 132) + "px";
+    });
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); form.requestSubmit(); }
+    });
+
+    renderSuggestions();
+  </script>
+</body>
+</html>

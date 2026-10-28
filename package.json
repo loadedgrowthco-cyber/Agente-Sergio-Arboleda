@@ -1,0 +1,16 @@
+{
+  "name": "asistente-kermesse",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Agente de IA de la Kermesse Sergista 2026 de la Universidad Sergio Arboleda (Barranquilla)",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.3.0"
+  }
+}
